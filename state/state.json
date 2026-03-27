@@ -1,10 +1,10 @@
 {
   "version": 1,
   "posted_ids": [],
-  "last_run": "2026-03-27T11:06:11Z",
+  "last_run": "2026-03-27T11:10:02Z",
   "last_post": null,
   "stats": {
-    "total_collected": 7,
+    "total_collected": 9,
     "total_posted": 0,
     "total_filtered_expired": 2,
     "total_filtered_low_score": 0,
