@@ -7,16 +7,18 @@ collect.py — 公式ソースからお得情報を収集する。
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
+from urllib.parse import quote_plus
 
 import requests
 
 logger = logging.getLogger(__name__)
 
-_REGISTRY: list[type[BaseCollector]] = []
+_REGISTRY: list[type["BaseCollector"]] = []
 
 
-def register(cls: type[BaseCollector]) -> type[BaseCollector]:
+def register(cls: type["BaseCollector"]) -> type["BaseCollector"]:
     """コレクターをグローバルレジストリに登録するデコレーター。"""
     _REGISTRY.append(cls)
     return cls
@@ -30,6 +32,67 @@ class BaseCollector:
         raise NotImplementedError
 
 
+def _clean_slug(raw: str | None) -> str:
+    """Epic の slug 候補をURL用に整形する。"""
+    slug = (raw or "").strip().strip("/")
+    if not slug:
+        return ""
+
+    # /home が付くことがあるので落とす
+    if slug.endswith("/home"):
+        slug = slug[:-5].rstrip("/")
+
+    return slug
+
+
+def _looks_like_opaque_id(slug: str) -> bool:
+    """
+    39e8285c0... のようなIDっぽい値を弾く。
+    ハイフン無しの長い16進文字列は商品ページslugとしては怪しい。
+    """
+    return bool(re.fullmatch(r"[0-9a-f]{16,}", slug.lower()))
+
+
+def _pick_epic_url(elem: dict[str, Any], title: str) -> str:
+    """
+    Epic の正式ページURLをなるべく壊れにくく組み立てる。
+    優先順:
+    1. catalogNs.mappings[].pageSlug
+    2. offerMappings[].pageSlug
+    3. productSlug
+    4. urlSlug
+    5. 最後の保険として公式検索URL
+    """
+    candidates: list[str] = []
+
+    catalog_ns = elem.get("catalogNs") or {}
+    for mapping in catalog_ns.get("mappings") or []:
+        page_slug = _clean_slug(mapping.get("pageSlug"))
+        if page_slug:
+            candidates.append(page_slug)
+
+    for mapping in elem.get("offerMappings") or []:
+        page_slug = _clean_slug(mapping.get("pageSlug"))
+        if page_slug:
+            candidates.append(page_slug)
+
+    for raw in (elem.get("productSlug"), elem.get("urlSlug")):
+        slug = _clean_slug(raw)
+        if slug:
+            candidates.append(slug)
+
+    for slug in candidates:
+        if _looks_like_opaque_id(slug):
+            continue
+        return f"https://store.epicgames.com/ja/p/{slug}"
+
+    # slug が壊れている/取れない場合の保険
+    return (
+        "https://store.epicgames.com/ja/browse"
+        f"?q={quote_plus(title)}&sortBy=relevancy&sortDir=DESC&count=40"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Epic Games — 無料ゲーム（公式 GraphQL API）
 # ---------------------------------------------------------------------------
@@ -37,9 +100,7 @@ class BaseCollector:
 @register
 class EpicGamesFreeCollector(BaseCollector):
     name = "epic_games_free"
-    API_URL = (
-        "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
-    )
+    API_URL = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
 
     def collect(self) -> list[dict[str, Any]]:
         try:
@@ -72,16 +133,14 @@ class EpicGamesFreeCollector(BaseCollector):
                     if disc.get("discountPercentage") != 0:
                         continue  # 無料ではない
 
-                    title: str = elem.get("title", "").strip()
-                    slug: str = (
-                        elem.get("productSlug")
-                        or elem.get("urlSlug")
-                        or ""
-                    ).strip()
-                    if not title or not slug:
+                    title: str = (elem.get("title") or "").strip()
+                    if not title:
                         continue
 
-                    url = f"https://store.epicgames.com/ja/p/{slug}"
+                    url = _pick_epic_url(elem, title)
+                    if not url:
+                        continue
+
                     description: str = (elem.get("description") or "")[:120]
                     original_price: str = (
                         elem.get("price", {})
