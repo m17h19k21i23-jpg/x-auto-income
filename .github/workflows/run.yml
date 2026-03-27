@@ -1,0 +1,132 @@
+name: Auto Post & Deploy Site
+
+on:
+  schedule:
+    # 6時間ごと（UTC 0:00 / 6:00 / 12:00 / 18:00）
+    - cron: "0 0,6,12,18 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run（X に投稿しない）"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      use_mock:
+        description: "モックデータを使用する（テスト用）"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+# Pages デプロイに必要な権限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# 同時実行を防ぐ（前の実行が終わるまで待つ）
+concurrency:
+  group: "auto-post"
+  cancel-in-progress: false
+
+jobs:
+  # -----------------------------------------------------------------------
+  # Job 1: テスト
+  # -----------------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+
+  # -----------------------------------------------------------------------
+  # Job 2: データ収集・投稿・サイト生成
+  # -----------------------------------------------------------------------
+  run:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      site_generated: ${{ steps.run.outputs.site_generated }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # state.json を更新するため書き込み権限が必要
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run main
+        id: run
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          # workflow_dispatch の dry_run 入力に応じて投稿 ON/OFF
+          # schedule 実行時は Variables の値を使用
+          POST_ENABLED: >-
+            ${{
+              inputs.dry_run == 'true' && 'false' ||
+              vars.POST_ENABLED || 'false'
+            }}
+          MONETIZATION_ENABLED: ${{ vars.MONETIZATION_ENABLED || 'false' }}
+          MIN_SCORE: ${{ vars.MIN_SCORE || '0.5' }}
+          MAX_POSTS_PER_RUN: ${{ vars.MAX_POSTS_PER_RUN || '3' }}
+          LOG_LEVEL: "INFO"
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ] || [ "${{ inputs.use_mock }}" = "true" ]; then
+            python app/main.py --dry-run
+          else
+            python app/main.py --post
+          fi
+          echo "site_generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit state and logs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/state.json logs/ site/
+          git diff --staged --quiet || git commit -m "chore: update state [skip ci]"
+          git push
+
+      - name: Upload site as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+  # -----------------------------------------------------------------------
+  # Job 3: GitHub Pages デプロイ
+  # -----------------------------------------------------------------------
+  deploy:
+    needs: run
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
