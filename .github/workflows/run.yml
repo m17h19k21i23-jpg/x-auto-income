@@ -93,7 +93,7 @@ jobs:
           DRY_RUN_INPUT: ${{ inputs.dry_run || 'false' }}
           USE_MOCK_INPUT: ${{ inputs.use_mock || 'false' }}
         run: |
-          if [ "$DRY_RUN_INPUT" = "true" ] || [ "$USE_MOCK_INPUT" = "true" ] || [ "$POST_ENABLED" != "true" ]; then
+          if [ "$DRY_RUN_INPUT" = "true" ] || [ "$USE_MOCK_INPUT" = "true" ]; then
             python -m app.main --dry-run
           else
             python -m app.main --post
