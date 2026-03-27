@@ -2,6 +2,7 @@
 render_site.py — Jinja2 テンプレートから site/index.html を生成する。
 
 MONETIZATION_ENABLED=true の場合のみ収益リンクスロットを表示する。
+dry_run=True でも site/index.html は書き出す。
 """
 from __future__ import annotations
 
@@ -51,13 +52,12 @@ def render(
     dry_run: bool = False,
 ) -> str:
     """
-    site/index.html を生成してパスを返す。
-    dry_run=True の場合はファイルに書き出さず生成内容を返す。
+    site/index.html を生成し、HTML文字列を返す。
+    dry_run=True でもファイルには書き出す。
     """
     monetization = os.getenv("MONETIZATION_ENABLED", "false").lower() == "true"
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    # 終了済みアイテムは除外
     active_items = []
     for item in items:
         label = _expires_label(item.get("expires_at"))
@@ -65,7 +65,6 @@ def render(
             continue
         active_items.append({**item, "expires_label": label})
 
-    # スコア降順でソート
     active_items.sort(key=lambda i: i.get("score", 0), reverse=True)
 
     env = Environment(
@@ -79,14 +78,16 @@ def render(
         updated_at=now_str,
         total=len(active_items),
         monetization=monetization,
+        dry_run=dry_run,
     )
-
-    if dry_run:
-        logger.info("[dry-run] Site HTML generated (%d bytes)", len(html))
-        return html
 
     SITE_DIR.mkdir(parents=True, exist_ok=True)
     out_path = SITE_DIR / "index.html"
     out_path.write_text(html, encoding="utf-8")
-    logger.info("Site rendered -> %s (%d items)", out_path, len(active_items))
+
+    if dry_run:
+        logger.info("[dry-run] Site rendered -> %s (%d items)", out_path, len(active_items))
+    else:
+        logger.info("Site rendered -> %s (%d items)", out_path, len(active_items))
+
     return html
