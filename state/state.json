@@ -1,11 +1,13 @@
 {
   "version": 1,
-  "posted_ids": [],
-  "last_run": "2026-03-27T11:10:02Z",
-  "last_post": null,
+  "posted_ids": [
+    "f447a0f01a9dd3ff"
+  ],
+  "last_run": "2026-03-27T11:30:59Z",
+  "last_post": "2026-03-27T11:30:59Z",
   "stats": {
-    "total_collected": 9,
-    "total_posted": 0,
+    "total_collected": 11,
+    "total_posted": 1,
     "total_filtered_expired": 2,
     "total_filtered_low_score": 0,
     "total_filtered_duplicate": 0
