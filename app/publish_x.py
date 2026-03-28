@@ -1,5 +1,5 @@
 """
-publish_x.py — X（旧Twitter）に投稿する。
+publish_x.py — X（旧Twitter）に Epic Games 情報を投稿する。
 
 投稿前チェック:
   1. POST_ENABLED=true か確認
@@ -23,15 +23,22 @@ logger = logging.getLogger(__name__)
 MAX_TWEET_LENGTH = 280
 T_CO_LENGTH = 23  # X の URL 短縮後の文字数
 
-# 投稿テンプレート（バリエーションを持たせる）
-_TEMPLATES = [
-    "🎁 {title}が無料！\n{summary}\n⏰ {expires}\n→ {url}",
-    "✨ 期間限定｜{title}\n{value}相当が無料配布中\n{summary}\n詳細→ {url}",
-    "🔥 お得情報｜{title}\n{summary}\n⏰ {expires}まで\n公式→ {url}",
-    "💰 {value}｜{title}\n{summary}\n期間限定キャンペーン\n→ {url}",
-    "📢 【無料配布】{title}\n{summary}\n残り: {expires}\n公式サイト→ {url}",
-    "⚡ 今だけ無料！{title}\n{summary}\n{expires}まで\n詳細はこちら→ {url}",
-]
+# 投稿テンプレート（無料配布・セールで使い分け）
+_TEMPLATE_FREE = (
+    "【Epic無料配布】\n"
+    "{title}\n\n"
+    "現在無料で入手できます。\n"
+    "期限: {expires_label}\n"
+    "公式: {url}"
+)
+_TEMPLATE_SALE = (
+    "【Epicセール】\n"
+    "{title}\n\n"
+    "現在価格: {value}\n"
+    "期限: {expires_label}\n"
+    "公式: {url}"
+)
+_TEMPLATES = [_TEMPLATE_FREE, _TEMPLATE_SALE]
 
 
 def _count_tweet_length(text: str, url: str) -> int:
@@ -45,17 +52,23 @@ def _count_tweet_length(text: str, url: str) -> int:
 
 
 def _build_tweet(item: Item, template_idx: int) -> str:
-    """テンプレートを使って投稿テキストを生成する。"""
-    tpl = _TEMPLATES[template_idx % len(_TEMPLATES)]
+    """
+    アイテムの内容に応じてテンプレートを選択し投稿テキストを生成する。
+    value が「無料」または空の場合は無料配布テンプレート、
+    それ以外はセールテンプレートを使用する。
+    template_idx は _select_template との互換性のために受け取るが、
+    実際のテンプレート選択はアイテムの value に基づく。
+    """
+    value = (item.get("value") or "").strip()
+    is_free = not value or "無料" in value or "free" in value.lower() or "0円" in value
+    tpl = _TEMPLATE_FREE if is_free else _TEMPLATE_SALE
 
-    expires = item.get("expires_label") or item.get("expires_at") or "期限未定"
-    summary = item["summary"][:60] if item["summary"] else ""
+    expires_label = item.get("expires_label") or item.get("expires_at") or "期限未定"
 
     text = tpl.format(
         title=item["title"],
-        value=item["value"] or "無料",
-        summary=summary,
-        expires=expires,
+        value=value or "無料",
+        expires_label=expires_label,
         url=item["url"],
     )
     return text
@@ -106,15 +119,12 @@ class XPublisher:
 
         if not item.get("url"):
             errors.append("url が空")
+            return errors
 
-        # 文字数チェック（最も短いテンプレートで確認）
-        for idx in range(len(_TEMPLATES)):
-            text = _build_tweet(item, idx)
-            length = _count_tweet_length(text, item["url"])
-            if length > MAX_TWEET_LENGTH:
-                errors.append(
-                    f"テンプレート {idx} が文字数超過: {length}/{MAX_TWEET_LENGTH}"
-                )
+        text = _build_tweet(item, 0)
+        length = _count_tweet_length(text, item["url"])
+        if length > MAX_TWEET_LENGTH:
+            errors.append(f"文字数超過: {length}/{MAX_TWEET_LENGTH}")
 
         return errors
 

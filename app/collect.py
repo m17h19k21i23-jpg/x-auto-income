@@ -1,5 +1,5 @@
 """
-collect.py — 公式ソースからお得情報を収集する。
+collect.py — Epic Games Store の無料配布・セール情報を収集する。
 
 各 Collector は collect() メソッドを実装し、生のdictリストを返す。
 @register デコレーターで自動登録される。
@@ -141,7 +141,6 @@ class EpicGamesFreeCollector(BaseCollector):
                     if not url:
                         continue
 
-                    description: str = (elem.get("description") or "")[:120]
                     original_price: str = (
                         elem.get("price", {})
                         .get("totalPrice", {})
@@ -149,13 +148,18 @@ class EpicGamesFreeCollector(BaseCollector):
                         .get("originalPrice", "")
                     )
 
+                    if original_price:
+                        summary = f"通常{original_price}が期間限定で無料配布中です。"
+                    else:
+                        summary = "Epic Games Storeで期間限定無料配布中！"
+
                     items.append(
                         {
                             "title": title,
                             "url": url,
                             "source": self.name,
-                            "summary": description,
-                            "value": original_price if original_price else "無料",
+                            "summary": summary,
+                            "value": "無料",
                             "expires_at": offer.get("endDate"),
                             "category": "game",
                         }
@@ -177,40 +181,40 @@ class MockCollector(BaseCollector):
     def collect(self) -> list[dict[str, Any]]:
         return [
             {
-                "title": "Epic Gamesサンプルゲーム",
-                "url": "https://store.epicgames.com/ja/p/sample-game",
+                "title": "Surviving the Aftermath",
+                "url": "https://store.epicgames.com/ja/p/surviving-the-aftermath",
                 "source": self.name,
-                "summary": "アクションRPGが期間限定で完全無料配布中です。",
-                "value": "¥2,640相当",
+                "summary": "通常¥1,870が期間限定で無料配布中です。",
+                "value": "無料",
                 "expires_at": "2026-04-10T15:00:00Z",
                 "category": "game",
             },
             {
-                "title": "クリエイティブツール Pro",
-                "url": "https://example-official.com/tool-pro-free",
+                "title": "Alan Wake Remastered",
+                "url": "https://store.epicgames.com/ja/p/alan-wake-remastered",
                 "source": self.name,
-                "summary": "プロ向けデザインツールが3ヶ月間無料で使えるキャンペーン。",
-                "value": "¥15,000相当",
-                "expires_at": "2026-03-31T23:59:00Z",
-                "category": "software",
+                "summary": "通常¥3,300が期間限定で無料配布中です。",
+                "value": "無料",
+                "expires_at": "2026-04-17T15:00:00Z",
+                "category": "game",
             },
             {
-                "title": "Adobeセール対象ソフト",
-                "url": "https://example-official.com/sale",
+                "title": "Ghostrunner 2",
+                "url": "https://store.epicgames.com/ja/p/ghostrunner-2",
                 "source": self.name,
-                "summary": "定番ソフトウェアが最大50%OFF。",
-                "value": "50%OFF",
+                "summary": "Epic Gamesストアにて60%オフのセール中です。",
+                "value": "¥1,980（60%OFF）",
                 "expires_at": "2026-04-05T23:59:00Z",
-                "category": "software",
+                "category": "game",
             },
             {
                 "title": "期限切れサンプル（除外されるべき）",
-                "url": "https://example-official.com/expired",
+                "url": "https://store.epicgames.com/ja/p/expired-sample",
                 "source": self.name,
                 "summary": "このアイテムは期限切れのテスト用データです。",
                 "value": "無料",
                 "expires_at": "2024-01-01T00:00:00Z",
-                "category": "other",
+                "category": "game",
             },
             {
                 "title": "URL なしサンプル（除外されるべき）",
@@ -219,7 +223,7 @@ class MockCollector(BaseCollector):
                 "summary": "公式URLがないので除外されるべきサンプルです。",
                 "value": "無料",
                 "expires_at": "2026-05-01T00:00:00Z",
-                "category": "other",
+                "category": "game",
             },
         ]
 

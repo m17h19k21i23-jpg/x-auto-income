@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="公式ソース限定のお得情報・無料配布・値下げ・期間限定情報まとめ">
-  <title>今すぐお得！公式限定キャンペーン情報</title>
+  <meta name="description" content="Epic Games Store の無料配布・値下げ情報を、日本向けに見やすく整理しています。">
+  <title>Epic Games 無料配布・セール速報</title>
   <style>
     :root {
       --bg: #0f1117;
@@ -209,9 +209,9 @@
 
 <header>
   <div class="header-inner">
-    <h1>今すぐお得！公式限定キャンペーン情報</h1>
+    <h1>Epic Games 無料配布・セール速報</h1>
     <p class="header-meta">
-      公式ソース限定 · 自動更新
+      Epic Games Store の無料配布・値下げ情報を、日本向けに見やすく整理しています。
       <span class="badge">{{ total }}件</span>
       <span style="margin-left:8px">最終更新: {{ updated_at }}</span>
     </p>
@@ -250,7 +250,7 @@
       {% endif %}
 
       <a class="cta" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
-        公式サイトで確認する →
+        Epic公式で見る →
       </a>
 
       <!-- MONETIZATION SLOT -->
@@ -267,17 +267,17 @@
 
   {% else %}
   <div class="empty-state">
-    <div style="font-size:3rem">🔍</div>
-    <p>現在表示できるお得情報はありません。</p>
-    <p>次回更新をお待ちください。</p>
+    <div style="font-size:3rem">🎮</div>
+    <p>現在配布・セール中のゲームはありません。</p>
+    <p>次回の無料配布をお待ちください。</p>
   </div>
   {% endif %}
 
 </main>
 
 <footer>
-  <p>掲載情報は公式サイトの情報をもとに自動収集しています。</p>
-  <p>最新情報は各公式サイトでご確認ください。</p>
+  <p>掲載情報は Epic Games Store の公式データをもとに自動収集しています。</p>
+  <p>最新情報・入手手順は Epic Games 公式サイトでご確認ください。</p>
 </footer>
 
 </body>

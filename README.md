@@ -1,14 +1,14 @@
-# X 自動投稿 + 情報ページ自動更新システム
+# Epic Games 無料配布・セール速報
 
-公式ソース限定のお得情報（無料配布・値下げ・期間限定）を自動収集し、X（旧Twitter）に投稿しながら GitHub Pages に一覧ページを公開するシステムです。
+Epic Games Store の無料配布・値下げ情報を自動収集し、X（旧Twitter）に速報投稿しながら GitHub Pages に一覧ページを公開するシステムです。
 
 ## 機能
 
-- 公式 API・RSS からお得情報を自動収集
+- Epic Games Store 公式 API から無料配布・セール情報を自動収集
 - 重複投稿防止（state/state.json で管理）
 - スコアリングによる品質フィルタリング
 - GitHub Actions で定期実行（6時間ごと）
-- GitHub Pages で最新情報一覧ページを公開
+- GitHub Pages で「Epic Games 無料配布・セール速報」一覧ページを公開
 - dry-run モードでローカルテスト可能
 - 収益リンクスロット内蔵（初期は OFF）
 
@@ -137,10 +137,10 @@ x-auto-income/
 └── .claude/             # Claude Code スキル・エージェント定義
 ```
 
-## 新しいデータソースの追加
+## 新しいデータソースの追加（Epic Games 関連のみ）
 
 1. `.claude/skills/collect/SKILL.md` を参照
-2. `app/collect.py` に新しい Collector クラスを追加
+2. `app/collect.py` に新しい Collector クラスを追加（公式 API/RSS のみ）
 3. `@register` デコレーターで登録
 4. `tests/` にテストを追加
 
