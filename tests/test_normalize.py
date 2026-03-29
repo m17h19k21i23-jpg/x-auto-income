@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from app.normalize import normalize, normalize_all
+from app.normalize import normalize, normalize_all, _item_slug
 
 
 class TestNormalize:
@@ -23,6 +23,26 @@ class TestNormalize:
         assert item["score"] == 0.0  # スコアは normalize 時点で 0.0
         assert item["posted_at"] is None
         assert len(item["id"]) == 16  # SHA-256 先頭 16 文字
+        assert item["slug"] == "taskflow-ai"  # スラッグが生成されること
+
+
+class TestItemSlug:
+    def test_basic_ascii_title(self):
+        assert _item_slug("TaskFlow AI", "fallback") == "taskflow-ai"
+
+    def test_lowercase_conversion(self):
+        assert _item_slug("ZipChat AI", "fallback") == "zipchat-ai"
+
+    def test_special_chars_stripped(self):
+        assert _item_slug("My Tool! (Pro)", "fallback") == "my-tool-pro"
+
+    def test_multiple_spaces_collapsed(self):
+        assert _item_slug("AI   Tool", "fallback") == "ai-tool"
+
+    def test_fallback_on_empty_slug(self):
+        # 日本語のみのタイトルは ASCII がないため fallback_id を使用
+        result = _item_slug("日本語のみ", "abc123")
+        assert result == "abc123"
 
     def test_empty_title_dropped(self):
         raw = {

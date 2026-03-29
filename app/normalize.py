@@ -22,6 +22,7 @@ _URL_RE = re.compile(r"^https?://[^\s/$.?#].\S*$", re.IGNORECASE)
 
 class Item(TypedDict):
     id: str                     # URL の SHA-256（先頭 16 hex）
+    slug: str                   # URL セーフなスラッグ（例: "taskflow-ai"）
     title: str
     url: str                    # 公式 URL（必須）
     source: str
@@ -39,6 +40,19 @@ class Item(TypedDict):
 
 def _item_id(url: str) -> str:
     return hashlib.sha256(url.encode()).hexdigest()[:16]
+
+
+def _item_slug(title: str, fallback_id: str) -> str:
+    """タイトルから URL セーフなスラッグを生成する。ASCII 文字のみ使用。"""
+    slug = title.lower()
+    # ASCII 英数字以外を除去
+    slug = re.sub(r"[^\w\s-]", "", slug, flags=re.ASCII)
+    # 空白・アンダースコアをハイフンに変換
+    slug = re.sub(r"[\s_]+", "-", slug)
+    # 連続ハイフンを縮める
+    slug = re.sub(r"-+", "-", slug)
+    slug = slug.strip("-")
+    return slug or fallback_id
 
 
 def _parse_expires(raw: Any) -> str | None:
@@ -109,8 +123,10 @@ def normalize(raw: dict[str, Any]) -> Item | None:
     category = (raw.get("category") or "other").strip().lower()
     source = (raw.get("source") or "unknown").strip()
 
+    item_id = _item_id(url)
     return Item(
-        id=_item_id(url),
+        id=item_id,
+        slug=_item_slug(title, item_id),
         title=title,
         url=url,
         source=source,

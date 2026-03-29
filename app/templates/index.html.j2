@@ -412,7 +412,7 @@
     <div class="featured-grid">
       {% for item in featured_items %}
       {% set v = item.value | lower %}
-      <article class="card-featured">
+      <article class="card-featured" id="{{ item.slug }}">
         <div class="featured-color-bar"></div>
         <div class="featured-body">
 
@@ -490,7 +490,7 @@
     <div class="all-grid">
       {% for item in displayed_items %}
       {% set v = item.value | lower %}
-      <article class="card-compact">
+      <article class="card-compact" id="{{ item.slug }}">
 
         {# 用途名（主見出し） #}
         <h2 class="use-case-title-compact">{{ item.use_case if item.use_case else "AIツール" }}</h2>

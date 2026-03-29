@@ -28,27 +28,31 @@ logger = logging.getLogger(__name__)
 MAX_TWEET_LENGTH = 280
 T_CO_LENGTH = 23  # X の URL 短縮後の文字数
 
+# デフォルト速報ページ URL（PUBLIC_SITE_URL 環境変数で上書き可能）
+DEFAULT_PUBLIC_SITE_URL = "https://m17h19k21i23-jpg.github.io/x-auto-income/"
+
 # 投稿テンプレート（値下げ・LTD・無料トライアルで使い分け）
+# URL は速報ページへのアンカー付きリンク（PAGES_URL 環境変数が設定されている場合）
 _TEMPLATE_SALE = (
-    "【AI/SaaS値下げ】\n"
-    "{title}\n\n"
-    "割引価格: {value}\n"
-    "期限: {expires_label}\n"
-    "詳細: {url}"
+    "【AI/SaaS速報】\n"
+    "{use_case} ｜ {title}\n\n"
+    "💰 {value}\n"
+    "⏰ {expires_label}\n"
+    "{pages_url}"
 )
 _TEMPLATE_LTD = (
-    "【買い切りLTD】\n"
-    "{title}\n\n"
-    "{value} でずっと使える！\n"
-    "期限: {expires_label}\n"
-    "詳細: {url}"
+    "【買い切りLTD速報】\n"
+    "{use_case} ｜ {title}\n\n"
+    "💰 {value}（一生使える！）\n"
+    "⏰ {expires_label}\n"
+    "{pages_url}"
 )
 _TEMPLATE_TRIAL = (
-    "【無料トライアル】\n"
-    "{title}\n\n"
-    "今すぐ無料で試せます。\n"
-    "期限: {expires_label}\n"
-    "詳細: {url}"
+    "【無料トライアル速報】\n"
+    "{use_case} ｜ {title}\n\n"
+    "🆓 今すぐ無料で試せます\n"
+    "⏰ {expires_label}\n"
+    "{pages_url}"
 )
 _TEMPLATES = [_TEMPLATE_SALE, _TEMPLATE_LTD, _TEMPLATE_TRIAL]
 
@@ -61,6 +65,22 @@ def _count_tweet_length(text: str, url: str) -> int:
     # テンプレート内の URL を仮の文字列に置換して計算
     text_without_url = text.replace(url, "")
     return len(text_without_url) + T_CO_LENGTH
+
+
+def _pages_item_url(item: Item) -> str | None:
+    """
+    速報ページの案件アンカー付き URL を返す。
+    PUBLIC_SITE_URL 環境変数（未設定時は DEFAULT_PUBLIC_SITE_URL）を使用する。
+    slug が存在しない場合は None を返す。
+
+    例: https://m17h19k21i23-jpg.github.io/x-auto-income/#zipchat-ai
+    """
+    base = os.getenv("PUBLIC_SITE_URL", DEFAULT_PUBLIC_SITE_URL).rstrip("/")
+    slug = item.get("slug", "")
+    if not slug:
+        logger.warning("slug が空のため landing_url を生成できません: %r", item.get("title"))
+        return None
+    return f"{base}/#{slug}"
 
 
 def _build_tweet(item: Item, template_idx: int) -> str:
@@ -95,12 +115,14 @@ def _build_tweet(item: Item, template_idx: int) -> str:
         tpl = _TEMPLATE_SALE
 
     expires_label = item.get("expires_label") or item.get("expires_at") or "期限未定"
+    pages_url = _pages_item_url(item) or ""
 
     text = tpl.format(
+        use_case=item.get("use_case") or "AIツール",
         title=item["title"],
         value=value or "無料",
         expires_label=expires_label,
-        url=item["url"],
+        pages_url=pages_url,
     )
     return text
 
@@ -148,12 +170,13 @@ class XPublisher:
         """投稿前バリデーション。エラーメッセージのリストを返す（空=OK）。"""
         errors: list[str] = []
 
-        if not item.get("url"):
-            errors.append("url が空")
+        landing_url = _pages_item_url(item)
+        if not landing_url:
+            errors.append("slug が空: landing_url を生成できません")
             return errors
 
         text = _build_tweet(item, 0)
-        length = _count_tweet_length(text, item["url"])
+        length = _count_tweet_length(text, landing_url)
         if length > MAX_TWEET_LENGTH:
             errors.append(f"文字数超過: {length}/{MAX_TWEET_LENGTH}")
 
@@ -172,7 +195,8 @@ class XPublisher:
             {"success": bool, "tweet_id": str | None, "text": str, "error": str | None}
         """
         text = _build_tweet(item, template_idx)
-        length = _count_tweet_length(text, item["url"])
+        pages_url = _pages_item_url(item) or ""
+        length = _count_tweet_length(text, pages_url)
 
         result: dict[str, Any] = {
             "success": False,

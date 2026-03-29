@@ -9,6 +9,7 @@ def make_item(**kwargs) -> Item:
     """テスト用の Item を生成するヘルパー。"""
     defaults: Item = {
         "id": "test001",
+        "slug": "taskflow-ai",
         "title": "TaskFlow AI",
         "url": "https://appsumo.com/products/taskflow-ai",
         "source": "appsumo",
