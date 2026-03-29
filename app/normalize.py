@@ -26,8 +26,11 @@ class Item(TypedDict):
     url: str                    # 公式 URL（必須）
     source: str
     summary: str
-    value: str                  # 例: "¥2,640相当" / "無料" / "50%OFF"
-    category: str               # game / software / service / other
+    value: str                  # 例: "LTD $49" / "無料" / "$79（87%OFF）"
+    original_value: str         # 元値表示用（例: "$588/年"）空文字の場合は非表示
+    use_case: str               # 用途ラベル（例: "AI文章生成" / "SEO分析"）
+    target_user: str            # 対象ユーザー（例: "EC / サポート担当向け"）
+    category: str               # ai_tool / saas / game / other
     expires_at: str | None      # ISO 8601 UTC またはNone
     score: float                # score.py で設定（初期値 0.0）
     collected_at: str           # ISO 8601 UTC
@@ -100,6 +103,9 @@ def normalize(raw: dict[str, Any]) -> Item | None:
 
     summary = (raw.get("summary") or "").strip()[:200]
     value = (raw.get("value") or "").strip()
+    original_value = (raw.get("original_value") or "").strip()
+    use_case = (raw.get("use_case") or "").strip()
+    target_user = (raw.get("target_user") or "").strip()
     category = (raw.get("category") or "other").strip().lower()
     source = (raw.get("source") or "unknown").strip()
 
@@ -110,6 +116,9 @@ def normalize(raw: dict[str, Any]) -> Item | None:
         source=source,
         summary=summary,
         value=value,
+        original_value=original_value,
+        use_case=use_case,
+        target_user=target_user,
         category=category,
         expires_at=expires_at,
         score=0.0,

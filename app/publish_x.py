@@ -1,5 +1,10 @@
 """
-publish_x.py — X（旧Twitter）に Epic Games 情報を投稿する。
+publish_x.py — X（旧Twitter）に AI / SaaS / 自動化ツール deals 情報を投稿する。
+
+テンプレート:
+  - SALE  (値下げ): 割引価格のセール情報
+  - LTD   (買い切り): ライフタイムディール
+  - TRIAL (無料トライアル): 無料で試せるプラン
 
 投稿前チェック:
   1. POST_ENABLED=true か確認
@@ -23,22 +28,29 @@ logger = logging.getLogger(__name__)
 MAX_TWEET_LENGTH = 280
 T_CO_LENGTH = 23  # X の URL 短縮後の文字数
 
-# 投稿テンプレート（無料配布・セールで使い分け）
-_TEMPLATE_FREE = (
-    "【Epic無料配布】\n"
-    "{title}\n\n"
-    "現在無料で入手できます。\n"
-    "期限: {expires_label}\n"
-    "公式: {url}"
-)
+# 投稿テンプレート（値下げ・LTD・無料トライアルで使い分け）
 _TEMPLATE_SALE = (
-    "【Epicセール】\n"
+    "【AI/SaaS値下げ】\n"
     "{title}\n\n"
-    "現在価格: {value}\n"
+    "割引価格: {value}\n"
     "期限: {expires_label}\n"
-    "公式: {url}"
+    "詳細: {url}"
 )
-_TEMPLATES = [_TEMPLATE_FREE, _TEMPLATE_SALE]
+_TEMPLATE_LTD = (
+    "【買い切りLTD】\n"
+    "{title}\n\n"
+    "{value} でずっと使える！\n"
+    "期限: {expires_label}\n"
+    "詳細: {url}"
+)
+_TEMPLATE_TRIAL = (
+    "【無料トライアル】\n"
+    "{title}\n\n"
+    "今すぐ無料で試せます。\n"
+    "期限: {expires_label}\n"
+    "詳細: {url}"
+)
+_TEMPLATES = [_TEMPLATE_SALE, _TEMPLATE_LTD, _TEMPLATE_TRIAL]
 
 
 def _count_tweet_length(text: str, url: str) -> int:
@@ -53,15 +65,34 @@ def _count_tweet_length(text: str, url: str) -> int:
 
 def _build_tweet(item: Item, template_idx: int) -> str:
     """
-    アイテムの内容に応じてテンプレートを選択し投稿テキストを生成する。
-    value が「無料」または空の場合は無料配布テンプレート、
-    それ以外はセールテンプレートを使用する。
+    アイテムの value / summary に応じてテンプレートを選択し投稿テキストを生成する。
+
+    選択ロジック:
+      - value に "LTD" / "lifetime" / "買い切り" を含む → LTD テンプレート
+      - value が空 / "無料" / "trial" を含む → 無料トライアルテンプレート
+      - それ以外 (% OFF / 価格付き) → 値下げテンプレート
+
     template_idx は _select_template との互換性のために受け取るが、
     実際のテンプレート選択はアイテムの value に基づく。
     """
     value = (item.get("value") or "").strip()
-    is_free = not value or "無料" in value or "free" in value.lower() or "0円" in value
-    tpl = _TEMPLATE_FREE if is_free else _TEMPLATE_SALE
+    value_lower = value.lower()
+    summary_lower = (item.get("summary") or "").lower()
+    combined = value_lower + " " + summary_lower
+
+    if "ltd" in value_lower or "lifetime" in combined or "買い切り" in combined:
+        tpl = _TEMPLATE_LTD
+    elif (
+        not value
+        or "無料" in value
+        or "free" in value_lower
+        or "0円" in value
+        or "trial" in combined
+        or "トライアル" in combined
+    ):
+        tpl = _TEMPLATE_TRIAL
+    else:
+        tpl = _TEMPLATE_SALE
 
     expires_label = item.get("expires_label") or item.get("expires_at") or "期限未定"
 

@@ -8,18 +8,18 @@ from app.normalize import normalize, normalize_all
 class TestNormalize:
     def test_valid_item(self):
         raw = {
-            "title": "テストゲーム",
-            "url": "https://store.epicgames.com/ja/p/test",
-            "source": "mock",
-            "summary": "テスト用サンプルです。",
-            "value": "無料",
+            "title": "TaskFlow AI",
+            "url": "https://appsumo.com/products/taskflow-ai",
+            "source": "appsumo",
+            "summary": "AIタスク管理SaaSのライフタイムディールです。",
+            "value": "LTD $49",
             "expires_at": "2099-12-31T23:59:00Z",
-            "category": "game",
+            "category": "ai_tool",
         }
         item = normalize(raw)
         assert item is not None
-        assert item["title"] == "テストゲーム"
-        assert item["url"] == "https://store.epicgames.com/ja/p/test"
+        assert item["title"] == "TaskFlow AI"
+        assert item["url"] == "https://appsumo.com/products/taskflow-ai"
         assert item["score"] == 0.0  # スコアは normalize 時点で 0.0
         assert item["posted_at"] is None
         assert len(item["id"]) == 16  # SHA-256 先頭 16 文字

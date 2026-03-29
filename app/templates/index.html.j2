@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Epic Games Store の無料配布・値下げ情報を、日本向けに見やすく整理しています。">
-  <title>Epic Games 無料配布・セール速報</title>
+  <meta name="description" content="AI / SaaS / 自動化ツールのお得なセール・LTD・無料トライアル情報を、日本向けに自動収集・整理しています。">
+  <title>AI/SaaS ツール deals 速報</title>
   <style>
     :root {
       --bg: #0f1117;
       --surface: #1a1d2e;
       --surface2: #252840;
+      --surface-featured: #1c1f3a;
       --accent: #6366f1;
       --accent2: #22d3ee;
       --text: #e2e8f0;
       --text-muted: #94a3b8;
+      --text-dim: #64748b;
       --green: #22c55e;
       --yellow: #eab308;
       --red: #ef4444;
+      --orange: #f97316;
       --border: #2d3348;
+      --border-featured: rgba(99,102,241,0.5);
       --radius: 12px;
+      --radius-sm: 8px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -29,14 +34,14 @@
       min-height: 100vh;
     }
 
-    /* ヘッダー */
+    /* ──── ヘッダー ──── */
     header {
       background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
       border-bottom: 1px solid var(--border);
       padding: 20px 16px;
       text-align: center;
     }
-    .header-inner { max-width: 960px; margin: 0 auto; }
+    .header-inner { max-width: 1040px; margin: 0 auto; }
     header h1 {
       font-size: 1.6rem;
       font-weight: 800;
@@ -45,11 +50,7 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .header-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
+    .header-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }
     .badge {
       display: inline-block;
       background: var(--accent);
@@ -61,124 +62,301 @@
       margin-left: 8px;
     }
 
-    /* メインコンテンツ */
-    main {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
+    main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 56px; }
+
+    /* ──── セクション見出し ──── */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
     }
 
-    /* アイテムグリッド */
-    .grid {
+    /* ════════════════════════════════════
+       おすすめ3件 — FEATURED CARDS
+       ════════════════════════════════════ */
+    .featured-section { margin-bottom: 48px; }
+    .featured-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-      margin-top: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
     }
 
-    /* カード */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+    .card-featured {
+      position: relative;
+      background: var(--surface-featured);
+      border: 1px solid var(--border-featured);
       border-radius: var(--radius);
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card-featured:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.22);
+    }
+
+    /* カラーバー（上部グラデーション帯） */
+    .featured-color-bar {
+      height: 5px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      flex-shrink: 0;
+    }
+
+    .featured-body {
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-    .card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .card-title {
-      font-size: 1rem;
-      font-weight: 700;
-      line-height: 1.4;
+      gap: 10px;
       flex: 1;
     }
 
-    /* 価値バッジ */
-    .value-badge {
-      flex-shrink: 0;
+    /* おすすめ理由バッジ */
+    .rec-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       font-size: 0.72rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 99px;
+      align-self: flex-start;
+      letter-spacing: 0.03em;
     }
-    .value-badge.free {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--green);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-    }
-    .value-badge.discount {
-      background: rgba(234, 179, 8, 0.15);
-      color: var(--yellow);
-      border: 1px solid rgba(234, 179, 8, 0.3);
-    }
-    .value-badge.other {
-      background: rgba(99, 102, 241, 0.15);
-      color: var(--accent);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+    .rec-badge.urgent  { background: rgba(239,68,68,0.18); color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
+    .rec-badge.discount{ background: rgba(234,179,8,0.18); color: #fbbf24; border: 1px solid rgba(234,179,8,0.35); }
+    .rec-badge.popular { background: rgba(99,102,241,0.18); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.35); }
+
+    /* 用途名（主見出し）— featured 版: グラデーション文字 */
+    .use-case-title-featured {
+      font-size: 1.35rem;
+      font-weight: 900;
+      line-height: 1.25;
+      background: linear-gradient(90deg, #a5b4fc, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    /* 期限 */
-    .expires {
+    /* ツール名 — featured */
+    .tool-name-featured {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-top: -4px;
+    }
+
+    /* 誰向けか — featured */
+    .target-badge-featured {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 99px;
+      background: rgba(34, 211, 238, 0.12);
+      color: var(--accent2);
+      border: 1px solid rgba(34, 211, 238, 0.28);
+      align-self: flex-start;
+    }
+
+    /* 一行要約 — featured */
+    .benefit-featured {
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    /* 価格行 — featured */
+    .price-row-featured {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+    .orig-price-featured {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-decoration: line-through;
+    }
+    .arrow-featured { font-size: 0.75rem; color: var(--text-dim); }
+    .cur-price-featured {
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+    .cur-price-featured.free     { color: var(--green); }
+    .cur-price-featured.ltd      { color: var(--accent2); }
+    .cur-price-featured.discount { color: var(--yellow); }
+    .cur-price-featured.other    { color: var(--accent); }
+
+    /* 期限 — featured */
+    .expires-featured {
       font-size: 0.78rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
     }
-    .expires.urgent { color: var(--red); font-weight: 700; }
-    .expires.soon { color: var(--yellow); font-weight: 600; }
+    .expires-featured.urgent { color: var(--red); font-weight: 700; }
+    .expires-featured.soon   { color: var(--orange); font-weight: 600; }
 
-    /* 要約 */
-    .summary {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      flex: 1;
-    }
-
-    /* CTAボタン */
-    .cta {
+    /* CTA — featured */
+    .cta-featured {
       display: block;
       text-align: center;
-      background: var(--accent);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
       color: #fff !important;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 0.9rem;
-      padding: 10px 16px;
-      border-radius: 8px;
+      padding: 11px 16px;
+      border-radius: var(--radius-sm);
       transition: opacity 0.15s;
       margin-top: auto;
     }
-    .cta:hover { opacity: 0.85; }
+    .cta-featured:hover { opacity: 0.85; }
 
-    /* ソースラベル */
-    .source-label {
-      font-size: 0.7rem;
+    /* ════════════════════════════════════
+       全件一覧 — COMPACT CARDS
+       ════════════════════════════════════ */
+    .all-section { }
+    .all-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .card-compact {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      transition: border-color 0.15s, transform 0.12s;
+    }
+    .card-compact:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* 用途名 — compact 版: アクセント色、小さめ */
+    .use-case-title-compact {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.3;
+    }
+
+    /* ツール名 — compact */
+    .tool-name-compact {
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-top: -2px;
+    }
+
+    /* 誰向けか — compact */
+    .target-badge-compact {
+      display: inline-block;
+      font-size: 0.67rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: rgba(34, 211, 238, 0.08);
+      color: var(--accent2);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      align-self: flex-start;
+    }
+
+    /* 一行要約 — compact */
+    .benefit-compact {
+      font-size: 0.8rem;
       color: var(--text-muted);
-      text-align: right;
-      opacity: 0.6;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    /* 価格行 — compact */
+    .price-row-compact {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .orig-price-compact {
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      text-decoration: line-through;
+    }
+    .cur-price-compact {
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+    .cur-price-compact.free     { color: var(--green); }
+    .cur-price-compact.ltd      { color: var(--accent2); }
+    .cur-price-compact.discount { color: var(--yellow); }
+    .cur-price-compact.other    { color: var(--accent); }
+
+    /* 期限 — compact */
+    .expires-compact {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+    .expires-compact.urgent { color: var(--red); font-weight: 700; }
+    .expires-compact.soon   { color: var(--orange); }
+
+    /* CTA — compact */
+    .cta-compact {
+      display: block;
+      text-align: center;
+      background: var(--surface2);
+      color: var(--text) !important;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: background 0.15s, border-color 0.15s;
+      margin-top: auto;
+    }
+    .cta-compact:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* 件数制限の注記 */
+    .more-notice {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      margin-top: 16px;
     }
 
     /* 収益スロット */
     .monetization-slot {
-      margin-top: 8px;
-      padding: 8px;
+      padding: 6px;
       border-top: 1px dashed var(--border);
-      font-size: 0.72rem;
-      color: var(--text-muted);
+      font-size: 0.7rem;
+      color: var(--text-dim);
       text-align: center;
     }
 
@@ -188,6 +366,7 @@
       padding: 80px 16px;
       color: var(--text-muted);
     }
+    .empty-state .empty-icon { font-size: 3rem; }
     .empty-state p { margin-top: 12px; font-size: 0.9rem; }
 
     /* フッター */
@@ -196,12 +375,16 @@
       padding: 20px 16px;
       text-align: center;
       font-size: 0.78rem;
-      color: var(--text-muted);
+      color: var(--text-dim);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       header h1 { font-size: 1.2rem; }
-      .grid { grid-template-columns: 1fr; }
+      .featured-grid { grid-template-columns: 1fr; }
+      .all-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 400px) {
+      .all-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -209,11 +392,11 @@
 
 <header>
   <div class="header-inner">
-    <h1>Epic Games 無料配布・セール速報</h1>
+    <h1>AI/SaaS ツール deals 速報</h1>
     <p class="header-meta">
-      Epic Games Store の無料配布・値下げ情報を、日本向けに見やすく整理しています。
-      <span class="badge">{{ total }}件</span>
-      <span style="margin-left:8px">最終更新: {{ updated_at }}</span>
+      AppSumo などから AI / SaaS / 自動化ツールのセール・LTD・無料トライアルを自動収集。
+      <span class="badge">{{ total }}件掲載中</span>
+      <span style="margin-left:8px">更新: {{ updated_at }}</span>
     </p>
   </div>
 </header>
@@ -221,63 +404,167 @@
 <main>
 
   {% if items %}
-  <div class="grid">
-    {% for item in items %}
-    <article class="card">
-      <div class="card-header">
-        <h2 class="card-title">{{ item.title }}</h2>
-        {% set v = item.value | lower %}
-        {% if "無料" in v or "free" in v or "0円" in v %}
-          <span class="value-badge free">{{ item.value }}</span>
-        {% elif "%" in item.value %}
-          <span class="value-badge discount">{{ item.value }}</span>
-        {% else %}
-          <span class="value-badge other">{{ item.value }}</span>
+
+  {# ════ おすすめ3件 ════ #}
+  {% if featured_items %}
+  <section class="featured-section">
+    <p class="section-label">🔥 今週のおすすめ — 今見るべき理由があります</p>
+    <div class="featured-grid">
+      {% for item in featured_items %}
+      {% set v = item.value | lower %}
+      <article class="card-featured">
+        <div class="featured-color-bar"></div>
+        <div class="featured-body">
+
+          {# おすすめ理由バッジ #}
+          {% set reason = item.recommendation_reason | default("人気カテゴリ") %}
+          {% if reason == "締切近い" %}
+            <span class="rec-badge urgent">⏰ 締切近い</span>
+          {% elif reason == "値引き大" %}
+            <span class="rec-badge discount">💰 値引き大</span>
+          {% else %}
+            <span class="rec-badge popular">⭐ 人気カテゴリ</span>
+          {% endif %}
+
+          {# 用途名（主見出し） #}
+          <h2 class="use-case-title-featured">{{ item.use_case if item.use_case else "AIツール" }}</h2>
+
+          {# ツール名（副見出し） #}
+          <p class="tool-name-featured">{{ item.title }}</p>
+
+          {# 誰向けか #}
+          {% if item.target_user %}
+          <span class="target-badge-featured">👤 {{ item.target_user }}</span>
+          {% endif %}
+
+          {# 日本語一行要約 #}
+          {% if item.summary %}
+          <p class="benefit-featured">{{ item.summary }}</p>
+          {% endif %}
+
+          {# 通常価格 → 現在価格 #}
+          <div class="price-row-featured">
+            {% if item.original_value %}
+            <span class="orig-price-featured">{{ item.original_value }}</span>
+            <span class="arrow-featured">→</span>
+            {% endif %}
+            {% if "無料" in v or "free" in v or "0円" in v or "トライアル" in v %}
+              <span class="cur-price-featured free">{{ item.value }}</span>
+            {% elif "ltd" in v or "lifetime" in v or "買い切り" in v %}
+              <span class="cur-price-featured ltd">{{ item.value }}</span>
+            {% elif "%" in item.value or "$" in item.value or "¥" in item.value %}
+              <span class="cur-price-featured discount">{{ item.value }}</span>
+            {% else %}
+              <span class="cur-price-featured other">{{ item.value }}</span>
+            {% endif %}
+          </div>
+
+          {# 期限 #}
+          {% set lbl = item.expires_label %}
+          {% if "あと" in lbl and "時間" in lbl %}
+            <p class="expires-featured urgent">⏰ {{ lbl }}で終了</p>
+          {% elif "あと" in lbl and ("1日" in lbl or "2日" in lbl or "3日" in lbl) %}
+            <p class="expires-featured soon">⏰ {{ lbl }}で終了</p>
+          {% elif lbl != "期限未定" %}
+            <p class="expires-featured">⏰ {{ lbl }}</p>
+          {% endif %}
+
+          <a class="cta-featured" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+            詳細を公式で見る →
+          </a>
+
+          {% if monetization %}
+          <div class="monetization-slot"><!-- 収益リンクスロット --></div>
+          {% endif %}
+
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ════ 全件一覧（最大12件）════ #}
+  <section class="all-section">
+    <p class="section-label">📋 全件一覧</p>
+    <div class="all-grid">
+      {% for item in displayed_items %}
+      {% set v = item.value | lower %}
+      <article class="card-compact">
+
+        {# 用途名（主見出し） #}
+        <h2 class="use-case-title-compact">{{ item.use_case if item.use_case else "AIツール" }}</h2>
+
+        {# ツール名 #}
+        <p class="tool-name-compact">{{ item.title }}</p>
+
+        {# 誰向けか #}
+        {% if item.target_user %}
+        <span class="target-badge-compact">{{ item.target_user }}</span>
         {% endif %}
-      </div>
 
-      {% set lbl = item.expires_label %}
-      {% if "あと" in lbl and "時間" in lbl %}
-        <p class="expires urgent">⏰ {{ lbl }}</p>
-      {% elif "あと" in lbl and ("1日" in lbl or "2日" in lbl or "3日" in lbl) %}
-        <p class="expires soon">⏰ {{ lbl }}</p>
-      {% else %}
-        <p class="expires">⏰ {{ lbl }}</p>
-      {% endif %}
+        {# 日本語一行要約 #}
+        {% if item.summary %}
+        <p class="benefit-compact">{{ item.summary }}</p>
+        {% endif %}
 
-      {% if item.summary %}
-      <p class="summary">{{ item.summary }}</p>
-      {% endif %}
+        {# 通常価格 → 現在価格 #}
+        <div class="price-row-compact">
+          {% if item.original_value %}
+          <span class="orig-price-compact">{{ item.original_value }}</span>
+          <span style="font-size:0.7rem;color:var(--text-dim)">→</span>
+          {% endif %}
+          {% if "無料" in v or "free" in v or "0円" in v or "トライアル" in v %}
+            <span class="cur-price-compact free">{{ item.value }}</span>
+          {% elif "ltd" in v or "lifetime" in v or "買い切り" in v %}
+            <span class="cur-price-compact ltd">{{ item.value }}</span>
+          {% elif "%" in item.value or "$" in item.value or "¥" in item.value %}
+            <span class="cur-price-compact discount">{{ item.value }}</span>
+          {% else %}
+            <span class="cur-price-compact other">{{ item.value }}</span>
+          {% endif %}
+        </div>
 
-      <a class="cta" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
-        Epic公式で見る →
-      </a>
+        {# 期限 #}
+        {% set lbl = item.expires_label %}
+        {% if "あと" in lbl and "時間" in lbl %}
+          <p class="expires-compact urgent">⏰ {{ lbl }}</p>
+        {% elif "あと" in lbl and ("1日" in lbl or "2日" in lbl or "3日" in lbl) %}
+          <p class="expires-compact soon">⏰ {{ lbl }}</p>
+        {% elif lbl != "期限未定" %}
+          <p class="expires-compact">⏰ {{ lbl }}</p>
+        {% endif %}
 
-      <!-- MONETIZATION SLOT -->
-      {% if monetization %}
-      <div class="monetization-slot">
-        <!-- ここに収益リンクを挿入 -->
-      </div>
-      {% endif %}
+        <a class="cta-compact" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+          詳細を公式で見る →
+        </a>
 
-      <p class="source-label">{{ item.source }}</p>
-    </article>
-    {% endfor %}
-  </div>
+        {% if monetization %}
+        <div class="monetization-slot"><!-- 収益リンクスロット --></div>
+        {% endif %}
+
+      </article>
+      {% endfor %}
+    </div>
+
+    {% if hidden_count > 0 %}
+    <p class="more-notice">他 {{ hidden_count }} 件あります。最新情報は AppSumo 公式でご確認ください。</p>
+    {% endif %}
+  </section>
 
   {% else %}
   <div class="empty-state">
-    <div style="font-size:3rem">🎮</div>
-    <p>現在配布・セール中のゲームはありません。</p>
-    <p>次回の無料配布をお待ちください。</p>
+    <div class="empty-icon">🤖</div>
+    <p>現在掲載中の AI/SaaS deals はありません。</p>
+    <p>セール情報は毎日自動更新されます。次回の更新をお待ちください。</p>
   </div>
   {% endif %}
 
 </main>
 
 <footer>
-  <p>掲載情報は Epic Games Store の公式データをもとに自動収集しています。</p>
-  <p>最新情報・入手手順は Epic Games 公式サイトでご確認ください。</p>
+  <p>掲載情報は AppSumo 等の公式データをもとに自動収集しています。</p>
+  <p>最新情報・購入手順は各 deals ページの公式サイトでご確認ください。</p>
 </footer>
 
 </body>

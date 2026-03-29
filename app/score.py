@@ -2,9 +2,9 @@
 score.py — Item にスコアを付与し、閾値以下を除外する。
 
 スコアリング基準（合計 1.0）:
-  +0.30  価値の明確さ（"無料" / "¥X相当" / "%OFF" を含む）
+  +0.30  価値の明確さ（"無料" / "$X" / "¥X相当" / "%OFF" / "LTD" を含む）
   +0.25  期限が設定されている（希少性・緊急性）
-  +0.20  カテゴリーボーナス（game/software は高め）
+  +0.20  カテゴリーボーナス（ai_tool/saas は高め）
   +0.15  価値の大きさ（金額・割引率が大きい）
   +0.10  要約の充実度（summary が 30 文字以上）
 """
@@ -21,10 +21,14 @@ logger = logging.getLogger(__name__)
 DEFAULT_MIN_SCORE: float = 0.5
 
 _YEN_RE = re.compile(r"[¥￥][\d,]+")
+_USD_RE = re.compile(r"\$[\d,]+")
 _PCT_RE = re.compile(r"(\d+)\s*%\s*[Oo][Ff][Ff]|(\d+)\s*%\s*OFF|(\d+)%引き")
-_FREE_RE = re.compile(r"無料|free|フリー|0円", re.IGNORECASE)
+_FREE_RE = re.compile(r"無料|free|フリー|0円|トライアル|trial", re.IGNORECASE)
+_LTD_RE = re.compile(r"LTD|lifetime|買い切り", re.IGNORECASE)
 
 _CATEGORY_BONUS = {
+    "ai_tool": 0.20,
+    "saas": 0.20,
     "game": 0.20,
     "software": 0.18,
     "service": 0.15,
@@ -33,11 +37,15 @@ _CATEGORY_BONUS = {
 
 
 def _score_value_clarity(value: str) -> float:
-    """価値が数値または "無料" で明示されているか。"""
+    """価値が数値または "無料" / "LTD" で明示されているか。"""
     if _FREE_RE.search(value):
         return 0.30
+    if _LTD_RE.search(value):
+        return 0.28
     if _YEN_RE.search(value):
         return 0.28
+    if _USD_RE.search(value):
+        return 0.25
     if _PCT_RE.search(value):
         return 0.22
     if value.strip():
@@ -47,9 +55,11 @@ def _score_value_clarity(value: str) -> float:
 
 def _score_value_magnitude(value: str) -> float:
     """価値の大きさ（金額・割引率）。"""
-    # 無料は最大
+    # 無料 / LTD は最大
     if _FREE_RE.search(value):
         return 0.15
+    if _LTD_RE.search(value):
+        return 0.13
 
     # 円額
     m = _YEN_RE.search(value)
@@ -63,6 +73,21 @@ def _score_value_magnitude(value: str) -> float:
             if amount >= 1000:
                 return 0.08
             return 0.04
+        except ValueError:
+            pass
+
+    # USD 額
+    m_usd = _USD_RE.search(value)
+    if m_usd:
+        try:
+            amount = int(m_usd.group().replace("$", "").replace(",", ""))
+            if amount >= 200:
+                return 0.15
+            if amount >= 100:
+                return 0.12
+            if amount >= 49:
+                return 0.10
+            return 0.06
         except ValueError:
             pass
 
