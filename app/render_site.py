@@ -139,6 +139,29 @@ def _select_featured(active_items: list[dict]) -> list[dict]:
     return selected
 
 
+STATIC_PAGES = ["about.html", "privacy.html", "disclosure.html", "contact.html"]
+
+
+def render_static_pages(dry_run: bool = False) -> None:
+    """
+    app/templates/static/ にある固定ページを site/ にコピーする。
+    dry_run=True の場合はスキップする。
+    """
+    if dry_run:
+        return
+    static_src = TEMPLATES_DIR / "static"
+    if not static_src.exists():
+        logger.debug("Static pages source dir not found, skipping: %s", static_src)
+        return
+    SITE_DIR.mkdir(parents=True, exist_ok=True)
+    for name in STATIC_PAGES:
+        src = static_src / name
+        if src.exists():
+            dst = SITE_DIR / name
+            dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            logger.info("Static page copied -> %s", dst)
+
+
 def render(
     items: list[Item],
     dry_run: bool = False,
@@ -191,4 +214,7 @@ def render(
     out_path = SITE_DIR / "index.html"
     out_path.write_text(html, encoding="utf-8")
     logger.info("Site rendered -> %s (%d items)", out_path, len(active_items))
+
+    render_static_pages(dry_run=False)
+
     return html
