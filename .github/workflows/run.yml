@@ -96,7 +96,7 @@ jobs:
           if [ "$DRY_RUN_INPUT" = "true" ] || [ "$USE_MOCK_INPUT" = "true" ]; then
             python -m app.main --dry-run
           else
-            python -m app.main --post
+            python -m app.main --post --sources dealify
           fi
           echo "site_generated=true" >> "$GITHUB_OUTPUT"
 
