@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 import os
 import random
+import re
 from datetime import datetime, timezone
 from typing import Any
 
@@ -83,18 +84,101 @@ def _pages_item_url(item: Item) -> str | None:
     return f"{base}/#{slug}"
 
 
+def _extract_dealify_header(item: Item) -> str:
+    """
+    summary の末尾文から用途先行の1行目表現を抽出する。
+    例: "...手間を減らしたい人向け。" → "手間を減らしたい人向け"
+    抽出できない場合は use_case + "したい人向け" にフォールバック。
+    """
+    summary = (item.get("summary") or "").strip()
+    if summary:
+        parts = [p.strip() for p in summary.split("。") if p.strip()]
+        if parts:
+            last = parts[-1]
+            if len(last) >= 6:
+                return last
+    use_case = item.get("use_case") or "ツール活用"
+    return f"{use_case}したい人向け"
+
+
+def _format_ltd_price(value: str) -> str:
+    """LTD価格を日本語表記に変換する。LTD $39 → 39ドル買い切り"""
+    m = re.search(r"\$(\d+(?:\.\d+)?)", value)
+    if m:
+        return f"{m.group(1)}ドル買い切り"
+    return f"{value}（買い切り）"
+
+
+def _build_tweet_dealify(item: Item) -> str:
+    """
+    Dealify ソース向け投稿テキスト生成。
+
+    フォーマット:
+      - 1行目: summary末尾文から用途先行の自然な表現（〜したい人向け）
+      - 2行目: title ｜ use_case
+      - 価格行: LTD は「XXドル買い切り」表記・⏰ 行を省略
+      - 最後: Pages アンカー URL
+    """
+    value = (item.get("value") or "").strip()
+    value_lower = value.lower()
+    summary_lower = (item.get("summary") or "").lower()
+    combined = value_lower + " " + summary_lower
+
+    header = _extract_dealify_header(item)
+    use_case = item.get("use_case") or "AIツール"
+    pages_url = _pages_item_url(item) or ""
+
+    is_ltd = "ltd" in value_lower or "lifetime" in combined or "買い切り" in combined
+
+    if is_ltd:
+        price_str = _format_ltd_price(value)
+        return (
+            f"{header}\n"
+            f"{item['title']} ｜ {use_case}\n\n"
+            f"💰 {price_str}\n"
+            f"{pages_url}"
+        )
+
+    is_free = (
+        not value
+        or "無料" in value
+        or "free" in value_lower
+        or "0円" in value
+        or "trial" in combined
+        or "トライアル" in combined
+    )
+    if is_free:
+        return (
+            f"{header}\n"
+            f"{item['title']} ｜ {use_case}\n\n"
+            f"🆓 今すぐ無料で試せます\n"
+            f"{pages_url}"
+        )
+
+    # 期限付きセール
+    expires_label = item.get("expires_label") or item.get("expires_at") or "期限未定"
+    return (
+        f"{header}\n"
+        f"{item['title']} ｜ {use_case}\n\n"
+        f"💰 {value}\n"
+        f"⏰ {expires_label}\n"
+        f"{pages_url}"
+    )
+
+
 def _build_tweet(item: Item, template_idx: int) -> str:
     """
-    アイテムの value / summary に応じてテンプレートを選択し投稿テキストを生成する。
+    アイテムの source / value / summary に応じてテンプレートを選択し投稿テキストを生成する。
 
-    選択ロジック:
-      - value に "LTD" / "lifetime" / "買い切り" を含む → LTD テンプレート
-      - value が空 / "無料" / "trial" を含む → 無料トライアルテンプレート
-      - それ以外 (% OFF / 価格付き) → 値下げテンプレート
+    Dealify ソースは専用フォーマット（_build_tweet_dealify）を使用。
+    それ以外は従来の 3 テンプレート（SALE / LTD / TRIAL）を使用。
 
     template_idx は _select_template との互換性のために受け取るが、
-    実際のテンプレート選択はアイテムの value に基づく。
+    実際のテンプレート選択はアイテムの source / value に基づく。
     """
+    if item.get("source") == "dealify":
+        return _build_tweet_dealify(item)
+
     value = (item.get("value") or "").strip()
     value_lower = value.lower()
     summary_lower = (item.get("summary") or "").lower()
