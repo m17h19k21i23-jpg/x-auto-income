@@ -1,0 +1,122 @@
+[
+  {
+    "title": "PromptBuilder",
+    "url": "https://dealify.com/products/promptbuilder?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "PromptBuilder は、ChatGPT・Claude・Gemini など向けのプロンプトを、作成・改善・テスト・整理までまとめて行えるツールです。毎回ゼロから書き直す手間を減らしたい人向け。",
+    "value": "LTD $39",
+    "original_value": "",
+    "use_case": "AIプロンプト効率化",
+    "target_user": "AI活用したいビジネス担当向け",
+    "category": "ai_tool",
+    "expires_at": null
+  },
+  {
+    "title": "TaskMagic",
+    "url": "https://dealify.com/products/taskmagic?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "TaskMagic は、クリック・入力・コピペなどのブラウザ操作をそのまま記録して自動化できるツールです。手作業の反復を減らしたい人向け。",
+    "value": "LTD $89",
+    "original_value": "",
+    "use_case": "ブラウザ操作を自動化",
+    "target_user": "非エンジニア・業務担当向け",
+    "category": "ai_tool",
+    "expires_at": null
+  },
+  {
+    "title": "Screpy",
+    "url": "https://dealify.com/products/screpy?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "Screpy は、SEO監視・改善提案・PageSpeed・稼働監視などをまとめて確認できるツールです。SEOを後回しにしていた人の最初の1本向け。",
+    "value": "LTD $69",
+    "original_value": "",
+    "use_case": "SEO見える化",
+    "target_user": "SEO担当・ブロガー向け",
+    "category": "saas",
+    "expires_at": null
+  },
+  {
+    "title": "1minAI",
+    "url": "https://dealify.com/products/1minai?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "ChatGPT・Claude・Gemini・DALL-E など30以上のAIモデルをひとつのダッシュボードで使えるツール。複数AIサービスの契約・管理をまとめたい人向け。",
+    "value": "LTD $39",
+    "original_value": "",
+    "use_case": "複数AI一括利用",
+    "target_user": "AI活用したいビジネス担当向け",
+    "category": "ai_tool",
+    "expires_at": null
+  },
+  {
+    "title": "Branalyzer",
+    "url": "https://dealify.com/products/branalyzer?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "競合ブランドのSEO指標・バックリンク・SNS存在感を一画面で比較分析。競合調査の手間を大幅に削減したいマーケター向け。",
+    "value": "LTD $49",
+    "original_value": "",
+    "use_case": "競合ブランド分析",
+    "target_user": "マーケター・SEO担当向け",
+    "category": "saas",
+    "expires_at": null
+  },
+  {
+    "title": "AdPeekr",
+    "url": "https://dealify.com/products/adpeekr?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "競合他社が出稿している広告クリエイティブ・ターゲティングを丸ごと調査できるツール。広告戦略の参考にしたい担当者向け。",
+    "value": "LTD $59",
+    "original_value": "",
+    "use_case": "競合広告リサーチ",
+    "target_user": "マーケター・広告担当向け",
+    "category": "saas",
+    "expires_at": null
+  },
+  {
+    "title": "EasySendy Pro",
+    "url": "https://dealify.com/products/easysendy?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "月額不要のメールマーケティングツール。メルマガ配信・自動ステップ配信・購読者管理をまとめて行いたい小規模ビジネス向け。",
+    "value": "LTD $69",
+    "original_value": "",
+    "use_case": "メールマーケ自動化",
+    "target_user": "営業・マーケター向け",
+    "category": "saas",
+    "expires_at": null
+  },
+  {
+    "title": "AI Mentions",
+    "url": "https://dealify.com/products/ai-mentions?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "ChatGPT・Gemini・Perplexity などAIが自社ブランドについて何と言っているかをリアルタイムで監視するツール。AIによる口コミ管理を始めたい企業向け。",
+    "value": "LTD $59",
+    "original_value": "",
+    "use_case": "AIブランド監視",
+    "target_user": "マーケター・ブランド担当向け",
+    "category": "saas",
+    "expires_at": null
+  },
+  {
+    "title": "Auto Affiliate Links",
+    "url": "https://dealify.com/products/auto-affiliate-links?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "WordPressブログの記事内キーワードに自動でアフィリエイトリンクを挿入するプラグイン。手動リンク貼り付け作業をゼロにしたいブロガー向け。",
+    "value": "LTD $79",
+    "original_value": "",
+    "use_case": "アフィリエイト自動化",
+    "target_user": "ブロガー・アフィリエイター向け",
+    "category": "saas",
+    "expires_at": null
+  },
+  {
+    "title": "Newsletterly",
+    "url": "https://dealify.com/products/newsletterly?ref=aitooldealjp",
+    "source": "dealify",
+    "summary": "AIが記事・ニュースを自動要約してニュースレターを生成するツール。コンテンツ収集・編集の手間を減らしたいメディア・情報発信者向け。",
+    "value": "LTD $69",
+    "original_value": "",
+    "use_case": "ニュースレター自動生成",
+    "target_user": "コンテンツ担当・情報発信者向け",
+    "category": "ai_tool",
+    "expires_at": null
+  }
+]

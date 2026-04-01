@@ -84,6 +84,13 @@ def _featured_score(item: dict) -> float:
     return score
 
 
+def _format_price_ja(value: str) -> str:
+    """$数字 を 数字ドル に変換する（例: LTD $39 → LTD 39ドル）。"""
+    if not value:
+        return value
+    return re.sub(r"\$(\d+)", r"\1ドル", value)
+
+
 def _get_recommendation_reason(item: dict) -> str:
     """おすすめ理由のラベルを返す（締切近い / 値引き大 / 人気カテゴリ）。"""
     expires_label = item.get("expires_label", "")
@@ -191,10 +198,13 @@ def render(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(["html"]),
     )
+    env.filters["price_ja"] = _format_price_ja
     template = env.get_template("index.html.j2")
 
-    displayed_items = active_items[:MAX_ALL_DISPLAYED]
-    hidden_count = max(0, len(active_items) - MAX_ALL_DISPLAYED)
+    featured_slugs = {item.get("slug", "") for item in featured_items}
+    non_featured = [i for i in active_items if i.get("slug", "") not in featured_slugs]
+    displayed_items = non_featured[:MAX_ALL_DISPLAYED]
+    hidden_count = max(0, len(non_featured) - MAX_ALL_DISPLAYED)
 
     html = template.render(
         items=active_items,

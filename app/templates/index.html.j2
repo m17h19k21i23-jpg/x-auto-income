@@ -458,13 +458,13 @@
             <span class="arrow-featured">→</span>
             {% endif %}
             {% if "無料" in v or "free" in v or "0円" in v or "トライアル" in v %}
-              <span class="cur-price-featured free">{{ item.value }}</span>
+              <span class="cur-price-featured free">{{ item.value | price_ja }}</span>
             {% elif "ltd" in v or "lifetime" in v or "買い切り" in v %}
-              <span class="cur-price-featured ltd">{{ item.value }}</span>
+              <span class="cur-price-featured ltd">{{ item.value | price_ja }}</span>
             {% elif "%" in item.value or "$" in item.value or "¥" in item.value %}
-              <span class="cur-price-featured discount">{{ item.value }}</span>
+              <span class="cur-price-featured discount">{{ item.value | price_ja }}</span>
             {% else %}
-              <span class="cur-price-featured other">{{ item.value }}</span>
+              <span class="cur-price-featured other">{{ item.value | price_ja }}</span>
             {% endif %}
           </div>
 
@@ -495,7 +495,7 @@
 
   {# ════ 全件一覧（最大12件）════ #}
   <section class="all-section">
-    <p class="section-label">📋 全件一覧</p>
+    <p class="section-label">📋 その他のおすすめ案件</p>
     <div class="all-grid">
       {% for item in displayed_items %}
       {% set v = item.value | lower %}
@@ -524,13 +524,13 @@
           <span style="font-size:0.7rem;color:var(--text-dim)">→</span>
           {% endif %}
           {% if "無料" in v or "free" in v or "0円" in v or "トライアル" in v %}
-            <span class="cur-price-compact free">{{ item.value }}</span>
+            <span class="cur-price-compact free">{{ item.value | price_ja }}</span>
           {% elif "ltd" in v or "lifetime" in v or "買い切り" in v %}
-            <span class="cur-price-compact ltd">{{ item.value }}</span>
+            <span class="cur-price-compact ltd">{{ item.value | price_ja }}</span>
           {% elif "%" in item.value or "$" in item.value or "¥" in item.value %}
-            <span class="cur-price-compact discount">{{ item.value }}</span>
+            <span class="cur-price-compact discount">{{ item.value | price_ja }}</span>
           {% else %}
-            <span class="cur-price-compact other">{{ item.value }}</span>
+            <span class="cur-price-compact other">{{ item.value | price_ja }}</span>
           {% endif %}
         </div>
 
@@ -557,7 +557,7 @@
     </div>
 
     {% if hidden_count > 0 %}
-    <p class="more-notice">他 {{ hidden_count }} 件あります。最新情報は AppSumo 公式でご確認ください。</p>
+    <p class="more-notice">他 {{ hidden_count }} 件あります。最新情報は各 deals 公式サイトでご確認ください。</p>
     {% endif %}
   </section>
 

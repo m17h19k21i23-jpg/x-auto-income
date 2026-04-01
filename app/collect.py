@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -430,10 +431,10 @@ class AppSumoCollector(BaseCollector):
             summary = f"通常${int(orig)}が${int(cur)}に値下げ中（{pct}%OFF）。"
         elif cur is not None:
             value = f"${int(cur)}"
-            summary = f"AppSumoで${int(cur)}から入手可能。"
+            summary = f"現在${int(cur)}から入手可能。詳細は公式ページでご確認ください。"
         else:
             value = "要確認"
-            summary = "詳細はAppSumoの公式ページをご確認ください。"
+            summary = "詳細は公式ページをご確認ください。"
 
         return value, summary
 
@@ -453,6 +454,34 @@ class AppSumoCollector(BaseCollector):
                 if key in normalized:
                     return internal
         return "saas"
+
+
+# ---------------------------------------------------------------------------
+# Dealify — 静的キュレーション案件（data/deals_static.json）
+# ---------------------------------------------------------------------------
+
+@register
+class DealifyStaticCollector(BaseCollector):
+    """
+    data/deals_static.json に記載された Dealify 案件を返す。
+    ファイルが存在しない場合は 0 件を返す（graceful）。
+    """
+
+    name = "dealify"
+    _DATA_PATH = Path(__file__).parent.parent / "data" / "deals_static.json"
+
+    def collect(self) -> list[dict[str, Any]]:
+        if not self._DATA_PATH.exists():
+            logger.warning("DealifyStaticCollector: data file not found: %s", self._DATA_PATH)
+            return []
+        try:
+            with self._DATA_PATH.open(encoding="utf-8") as f:
+                items = json.load(f)
+        except Exception as exc:
+            logger.error("DealifyStaticCollector: failed to load data: %s", exc)
+            return []
+        logger.info("Dealify: %d items loaded from static data", len(items))
+        return items
 
 
 # ---------------------------------------------------------------------------
@@ -618,7 +647,7 @@ _EXTRAS: list[type["BaseCollector"]] = [EpicGamesFreeCollector]
 # ---------------------------------------------------------------------------
 
 # sources を指定しない場合のデフォルト実行対象（Epic を含まない）
-DEFAULT_SOURCES: frozenset[str] = frozenset({"appsumo"})
+DEFAULT_SOURCES: frozenset[str] = frozenset({"appsumo", "dealify"})
 
 
 def collect_all(
