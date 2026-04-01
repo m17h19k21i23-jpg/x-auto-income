@@ -93,11 +93,17 @@ jobs:
           DRY_RUN_INPUT: ${{ inputs.dry_run || 'false' }}
           USE_MOCK_INPUT: ${{ inputs.use_mock || 'false' }}
         run: |
-          if [ "$DRY_RUN_INPUT" = "true" ] || [ "$USE_MOCK_INPUT" = "true" ]; then
-            python -m app.main --dry-run
+          if [ "$DRY_RUN_INPUT" = "true" ]; then
+            POST_FLAG="--dry-run"
           else
-            python -m app.main --post --sources dealify
+            POST_FLAG="--post"
           fi
+          if [ "$USE_MOCK_INPUT" = "true" ]; then
+            SOURCES_FLAG=""
+          else
+            SOURCES_FLAG="--sources dealify"
+          fi
+          python -m app.main $POST_FLAG $SOURCES_FLAG
           echo "site_generated=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit state and logs
