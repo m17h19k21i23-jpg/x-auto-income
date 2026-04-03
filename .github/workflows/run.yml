@@ -2,8 +2,11 @@ name: Auto Post & Deploy Site
 
 on:
   schedule:
-    # 6時間ごと（UTC 0:00 / 6:00 / 12:00 / 18:00）
-    - cron: "0 0,6,12,18 * * *"
+    # 1日1回（UTC 11:00 = JST 20:00）— 通常投稿
+    # 将来 1日2回にするなら: "0 3,11 * * *"（UTC 3:00 / 11:00 = JST 12:00 / 20:00）
+    - cron: "0 11 * * *"
+    # 1日1回（UTC 10:00 = JST 19:00）— 集客自動化（返信候補収集・コミュニティ下書き）
+    - cron: "0 10 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -16,6 +19,14 @@ on:
           - "true"
       use_mock:
         description: "モックデータを使用する（テスト用）"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      run_traffic:
+        description: "集客自動化（返信候補収集・コミュニティ下書き）を実行"
         required: false
         default: "false"
         type: choice
@@ -89,26 +100,54 @@ jobs:
           MONETIZATION_ENABLED: ${{ vars.MONETIZATION_ENABLED || 'false' }}
           MIN_SCORE: ${{ vars.MIN_SCORE || '0.5' }}
           MAX_POSTS_PER_RUN: ${{ vars.MAX_POSTS_PER_RUN || '3' }}
+          REPOST_INTERVAL_DAYS: ${{ vars.REPOST_INTERVAL_DAYS || '0' }}
+          TRAFFIC_AUTOMATION_ENABLED: ${{ vars.TRAFFIC_AUTOMATION_ENABLED || 'false' }}
+          AUTO_REPLY_ENABLED: ${{ vars.AUTO_REPLY_ENABLED || 'false' }}
+          AUTO_REPLY_MODE: ${{ vars.AUTO_REPLY_MODE || 'queue' }}
+          AUTO_REPLY_MAX_PER_RUN: ${{ vars.AUTO_REPLY_MAX_PER_RUN || '3' }}
+          AUTO_REPLY_MAX_PER_DAY: ${{ vars.AUTO_REPLY_MAX_PER_DAY || '10' }}
+          COMMUNITY_CANDIDATES_ENABLED: ${{ vars.COMMUNITY_CANDIDATES_ENABLED || 'true' }}
+          COMMUNITY_MAX_DRAFTS: ${{ vars.COMMUNITY_MAX_DRAFTS || '10' }}
+          MY_X_USERNAME: ${{ vars.MY_X_USERNAME || '' }}
+          REPLY_ALLOWLIST: ${{ vars.REPLY_ALLOWLIST || '' }}
+          REPLY_KEYWORDS: ${{ vars.REPLY_KEYWORDS || '' }}
           LOG_LEVEL: "INFO"
           DRY_RUN_INPUT: ${{ inputs.dry_run || 'false' }}
           USE_MOCK_INPUT: ${{ inputs.use_mock || 'false' }}
+          RUN_TRAFFIC_INPUT: ${{ inputs.run_traffic || 'false' }}
+          GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule || '' }}
         run: |
           if [ "$DRY_RUN_INPUT" = "true" ] && [ "$USE_MOCK_INPUT" = "true" ]; then
-            # dry_run=true, use_mock=true
             CMD="python -m app.main --dry-run"
           elif [ "$DRY_RUN_INPUT" = "true" ]; then
-            # dry_run=true, use_mock=false
             CMD="python -m app.main --dry-run --no-mock --sources dealify"
           elif [ "$USE_MOCK_INPUT" = "true" ]; then
-            # dry_run=false, use_mock=true → 安全側で dry-run
             CMD="python -m app.main --dry-run"
           else
-            # dry_run=false, use_mock=false
             CMD="python -m app.main --post --sources dealify"
           fi
           echo "Running: $CMD"
           $CMD
           echo "site_generated=true" >> "$GITHUB_OUTPUT"
+
+          # 集客自動化（traffic_main）を実行するか判断
+          # 条件: run_traffic=true（手動）または UTC 10:00 のスケジュール実行
+          SHOULD_TRAFFIC="false"
+          if [ "$RUN_TRAFFIC_INPUT" = "true" ]; then
+            SHOULD_TRAFFIC="true"
+          elif [ "$GITHUB_EVENT_SCHEDULE" = "0 10 * * *" ]; then
+            SHOULD_TRAFFIC="true"
+          fi
+
+          if [ "$SHOULD_TRAFFIC" = "true" ]; then
+            if [ "$DRY_RUN_INPUT" = "true" ]; then
+              TRAFFIC_CMD="python -m app.traffic_main --dry-run"
+            else
+              TRAFFIC_CMD="python -m app.traffic_main --post --sources dealify"
+            fi
+            echo "Running traffic: $TRAFFIC_CMD"
+            $TRAFFIC_CMD
+          fi
 
       - name: Commit state and logs
         run: |
