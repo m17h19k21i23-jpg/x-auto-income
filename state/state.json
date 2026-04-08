@@ -6,13 +6,13 @@
     "fe7d0d65827bf7b9",
     "471d1631e91d2d0c"
   ],
-  "last_run": "2026-04-07T11:56:26Z",
+  "last_run": "2026-04-08T11:57:44Z",
   "last_post": "2026-04-02T02:40:24Z",
   "stats": {
-    "total_collected": 671,
+    "total_collected": 681,
     "total_posted": 4,
     "total_filtered_expired": 2,
     "total_filtered_low_score": 0,
-    "total_filtered_duplicate": 42
+    "total_filtered_duplicate": 43
   }
 }
